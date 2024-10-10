@@ -4,7 +4,7 @@ use crate::{
     Arsc, Config, Package, ResourceEntry, ResourceValue, Resources, Spec, Specs, Style, StyleSpan,
     Type,
 };
-use std::io::{BufReader, Error, Read, Seek, SeekFrom};
+use std::io::{BufReader, Error, ErrorKind, Read, Seek, SeekFrom};
 
 impl<R: Read> TryFrom<&mut BufReader<R>> for Header {
     type Error = std::io::Error;
@@ -295,7 +295,12 @@ impl<R: Read + Seek> TryFrom<&mut BufReader<R>> for Package {
                     config.header_size = header.header_size;
                     types[config.type_id - 1].configs.push(config);
                 }
-                flag => unreachable!("Unexpected flag: {flag:?}"),
+                flag => {
+                    return Err(std::io::Error::new(
+                        ErrorKind::InvalidData,
+                        format!("Unexpected flag: {flag:?}"),
+                    ))
+                }
             }
         }
         Ok(Package {
