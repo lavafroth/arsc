@@ -18,10 +18,12 @@ pub enum ResourceType {
     TableLibrary = 0x0203,
 }
 
-impl From<u16> for ResourceType {
-    fn from(bits: u16) -> Self {
+impl TryFrom<u16> for ResourceType {
+    type Error = std::io::Error;
+
+    fn try_from(bits: u16) -> Result<Self, Self::Error> {
         use ResourceType::*;
-        match bits {
+        Ok(match bits {
             0 => Null,
             1 => StringPool,
             2 => Table,
@@ -29,8 +31,13 @@ impl From<u16> for ResourceType {
             0x0201 => TableType,
             0x0202 => TableTypeSpec,
             0x0203 => TableLibrary,
-            bits => unreachable!("Unexpected bits: {bits}"),
-        }
+            bits => {
+                return Err(std::io::Error::new(
+                    std::io::ErrorKind::InvalidData,
+                    format!("Unexpected bits: {bits}"),
+                ));
+            }
+        })
     }
 }
 
