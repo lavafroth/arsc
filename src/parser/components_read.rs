@@ -295,7 +295,12 @@ impl<R: Read + Seek> TryFrom<&mut BufReader<R>> for Package {
                     config.header_size = header.header_size;
                     types[config.type_id - 1].configs.push(config);
                 }
-                flag => unreachable!("Unexpected flag: {flag:?}"),
+                flag => {
+                    return Err(std::io::Error::new(
+                        std::io::ErrorKind::InvalidData,
+                        format!("Unexpected flag: {flag:?}"),
+                    ))
+                }
             }
         }
         Ok(Package {
